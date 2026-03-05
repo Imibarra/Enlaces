@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master en Enlaces Gramaticales</title>
+    <style>
+        :root {
+            --dark-blue: #1e293b;
+            --accent-blue: #3b82f6;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background-color: var(--dark-blue); 
+            color: white;
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+        }
+
+        #game-container { 
+            background: #ffffff; 
+            color: #333;
+            padding: 2.5rem; 
+            border-radius: 20px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3); 
+            width: 90%; 
+            max-width: 650px; 
+            text-align: center; 
+        }
+
+        .hidden { display: none !important; }
+
+        .sentence { 
+            font-size: 1.6rem; 
+            margin: 2rem 0; 
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 10px;
+        }
+
+        .word { 
+            cursor: pointer; 
+            padding: 4px 8px; 
+            border-radius: 6px; 
+            transition: all 0.2s;
+            display: inline-block;
+        }
+
+        .word:hover { background-color: #cbd5e1; }
+
+        /* Estados de selección */
+        .selected-correct { background-color: var(--success) !important; color: white; }
+        .selected-wrong { background-color: var(--error) !important; color: white; }
+        .btn-active { background-color: var(--accent-blue) !important; border: 3px solid var(--dark-blue) !important; }
+
+        .btn-group { 
+            display: flex; 
+            justify-content: center; 
+            gap: 10px; 
+            margin-top: 15px; 
+            flex-wrap: wrap;
+        }
+
+        button { 
+            padding: 12px 20px; 
+            border: 2px solid transparent; 
+            border-radius: 10px; 
+            background-color: var(--dark-blue); 
+            color: white; 
+            cursor: pointer; 
+            font-size: 1rem; 
+            transition: all 0.2s;
+        }
+
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        
+        #next-btn { 
+            background-color: var(--success); 
+            margin-top: 30px; 
+            width: 100%; 
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .feedback { 
+            margin-top: 20px; 
+            font-weight: bold; 
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        #score-board { font-size: 1.1rem; margin-bottom: 20px; color: var(--dark-blue); border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        
+        input[type="text"] { 
+            padding: 15px; 
+            width: 80%; 
+            border: 2px solid var(--dark-blue); 
+            border-radius: 10px; 
+            font-size: 1.1rem;
+            margin: 20px 0;
+        }
+
+        .victory-title { color: var(--success); font-size: 2.5rem; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="score-board">
+        🏆 Puntos: <span id="score">0</span> / 30 | 📝 Pregunta: <span id="q-num">1</span>/30
+    </div>
+    
+    <div id="quiz-section">
+        <p id="instruction">1. Haz clic en el <b>enlace</b> de la oración:</p>
+        <div id="sentence-display" class="sentence"></div>
+        
+        <div id="classification-zone" class="hidden">
+            <p>2. ¿Qué tipo de enlace es?</p>
+            <div class="btn-group" id="type-btns">
+                <button onclick="checkType('preposición', this)">Preposición</button>
+                <button onclick="checkType('conjunción', this)">Conjunción</button>
+            </div>
+        </div>
+
+        <div id="subtype-zone" class="hidden">
+            <p>3. Clasifica la conjunción:</p>
+            <div class="btn-group" id="subtype-btns">
+                <button onclick="checkSubtype('copulativa', this)">Copulativa</button>
+                <button onclick="checkSubtype('disyuntiva', this)">Disyuntiva</button>
+                <button onclick="checkSubtype('adversativa', this)">Adversativa</button>
+            </div>
+        </div>
+
+        <div id="feedback" class="feedback"></div>
+        <button id="next-btn" class="hidden" onclick="loadNextQuestion()">SIGUIENTE PREGUNTA →</button>
+    </div>
+
+    <div id="registration-section" class="hidden">
+        <h2 class="victory-title">¡PERFECTO! 🌟</h2>
+        <p>Has conseguido los 30 puntos. Introduce tu nombre:</p>
+        <input type="text" id="user-name" placeholder="Tu nombre o apodo">
+        <br>
+        <button onclick="showVictory()">OBTENER DIPLOMA</button>
+    </div>
+
+    <div id="victory-section" class="hidden">
+        <h1 id="victory-msg" style="color: var(--dark-blue);"></h1>
+        <div style="font-size: 5rem; margin: 20px 0;">🏆🥇🙌🔥</div>
+        <button onclick="location.reload()">VOLVER A JUGAR</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { s: "Compré pan y leche", link: "y", type: "conjunción", sub: "copulativa" },
+        { s: "Quiero un café con leche", link: "con", type: "preposición" },
+        { s: "Iré, pero tarde", link: "pero", type: "conjunción", sub: "adversativa" },
+        { s: "Prefieres el té o el café", link: "o", type: "conjunción", sub: "disyuntiva" },
+        { s: "No he traído el libro de lengua", link: "de", type: "preposición" },
+        { s: "No come, ni deja comer", link: "ni", type: "conjunción", sub: "copulativa" },
+        { s: "Es pequeño aunque fuerte", link: "aunque", type: "conjunción", sub: "adversativa" },
+        { s: "Voy hacia casa", link: "hacia", type: "preposición" },
+        { s: "Juan e Isabel son amigos", link: "e", type: "conjunción", sub: "copulativa" },
+        { s: "¿Han venido siete u ocho personas?", link: "u", type: "conjunción", sub: "disyuntiva" },
+        { s: "No estudia, sino que trabaja", link: "sino", type: "conjunción", sub: "adversativa" },
+        { s: "Desde el lunes que hace frio", link: "desde", type: "preposición" },
+        { s: "Vino para ayudar", link: "para", type: "preposición" },
+        { s: "Bajo la mesa lo encontrarás", link: "bajo", type: "preposición" },
+        { s: "Padres e hijos", link: "e", type: "conjunción", sub: "copulativa" },
+        { s: "Bien o mal", link: "o", type: "conjunción", sub: "disyuntiva" },
+        { s: "No estoy triste ni contento", link: "ni", type: "conjunción", sub: "copulativa" },
+        { s: "Sin miedo, siempre fuertes", link: "sin", type: "preposición" },
+        { s: "No mientas ante el juez", link: "ante", type: "preposición" },
+        { s: "Hector e Isaac no se llevan bien", link: "y", type: "conjunción", sub: "copulativa" },
+        { s: "Han chocado contra la pared", link: "contra", type: "preposición" },
+        { s: "Hasta mañana", link: "hasta", type: "preposición" },
+        { s: "Cerca de ti", link: "de", type: "preposición" },
+        { s: "Escucha, pero no habla", link: "mas", type: "conjunción", sub: "adversativa" },
+        { s: "El tomate es una fruta u hortaliza", link: "u", type: "conjunción", sub: "disyuntiva" },
+        { s: "Entre tú y yo", link: "entre", type: "preposición" },
+        { s: "Déjalo sobre la mesa", link: "sobre", type: "preposición" },
+        { s: "Tras la puerta", link: "tras", type: "preposición" },
+        { s: "No canta ni baila", link: "ni", type: "conjunción", sub: "copulativa" },
+        { s: "Rápido pero seguro", link: "pero", type: "conjunción", sub: "adversativa" }
+    ];
+
+    let currentQ = 0;
+    let score = 0;
+    let gameQuestions = [];
+    let state = "word-search"; 
+    let pointLost = false;
+
+    function initGame() {
+        gameQuestions = [...questions].sort(() => Math.random() - 0.5);
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        const q = gameQuestions[currentQ];
+        const display = document.getElementById("sentence-display");
+        display.innerHTML = "";
+        pointLost = false;
+        state = "word-search";
+        
+        q.s.split(" ").forEach(word => {
+            let span = document.createElement("span");
+            span.innerText = word + " ";
+            span.className = "word";
+            span.onclick = () => selectWord(span, word.replace(/[.,]/g, ""));
+            display.appendChild(span);
+        });
+
+        document.getElementById("q-num").innerText = currentQ + 1;
+        resetUI();
+    }
+
+    function selectWord(element, word) {
+        if(state !== "word-search") return;
+        const q = gameQuestions[currentQ];
+        
+        if(word.toLowerCase() === q.link.toLowerCase()) {
+            element.classList.add("selected-correct");
+            state = "type-select";
+            document.getElementById("classification-zone").classList.remove("hidden");
+            showFeedback("¡Bien! Ahora elige el tipo.", "green");
+        } else {
+            pointLost = true;
+            element.classList.add("selected-wrong");
+            showFeedback(`Incorrecto. El enlace es "${q.link}". Selecciónalo para continuar.`, "red");
+        }
+    }
+
+    function checkType(type, btn) {
+        if(state !== "type-select") return;
+        const q = gameQuestions[currentQ];
+        
+        // Marcar botón
+        highlightButton("type-btns", btn);
+
+        if(type === q.type) {
+            if(type === "preposición") {
+                finishQuestion();
+            } else {
+                state = "sub-select";
+                document.getElementById("subtype-zone").classList.remove("hidden");
+                showFeedback("¡Correcto! Es una conjunción. ¿De qué tipo?", "green");
+            }
+        } else {
+            pointLost = true;
+            showFeedback(`No, es una ${q.type}. Corrígelo pulsando el botón correcto.`, "red");
+        }
+    }
+
+    function checkSubtype(sub, btn) {
+        if(state !== "sub-select") return;
+        const q = gameQuestions[currentQ];
+        
+        highlightButton("subtype-btns", btn);
+
+        if(sub === q.sub) {
+            finishQuestion();
+        } else {
+            pointLost = true;
+            showFeedback(`Incorrecto. Es una conjunción ${q.sub}.`, "red");
+        }
+    }
+
+    function highlightButton(groupId, activeBtn) {
+        const btns = document.getElementById(groupId).querySelectorAll('button');
+        btns.forEach(b => b.classList.remove('btn-active'));
+        activeBtn.classList.add('btn-active');
+    }
+
+    function showFeedback(text, color) {
+        const f = document.getElementById("feedback");
+        f.innerText = text;
+        f.style.color = color === "green" ? "#059669" : "#dc2626";
+    }
+
+    function finishQuestion() {
+        state = "finished";
+        if(!pointLost) {
+            score++;
+            document.getElementById("score").innerText = score;
+        }
+        showFeedback("¡Pregunta completada!", "green");
+        document.getElementById("next-btn").classList.remove("hidden");
+        
+        // Bloquear todos los botones de la fase actual para evitar clics extra
+        const allButtons = document.querySelectorAll('.btn-group button');
+        allButtons.forEach(b => { if(!b.classList.contains('btn-active')) b.disabled = true; });
+    }
+
+    function loadNextQuestion() {
+        currentQ++;
+        if(currentQ < 30) {
+            renderQuestion();
+        } else {
+            endGame();
+        }
+    }
+
+    function resetUI() {
+        document.getElementById("classification-zone").classList.add("hidden");
+        document.getElementById("subtype-zone").classList.add("hidden");
+        document.getElementById("next-btn").classList.add("hidden");
+        document.getElementById("feedback").innerText = "";
+        document.querySelectorAll('button').forEach(b => {
+            b.classList.remove('btn-active');
+            b.disabled = false;
+        });
+    }
+
+    function endGame() {
+        document.getElementById("quiz-section").classList.add("hidden");
+        if(score === 30) {
+            document.getElementById("registration-section").classList.remove("hidden");
+        } else {
+            alert(`Fin del juego. Has conseguido ${score} de 30 puntos. ¡Sigue repasando para llegar al 30!`);
+            location.reload();
+        }
+    }
+
+    function showVictory() {
+        const name = document.getElementById("user-name").value || "El alumno/a";
+        document.getElementById("registration-section").classList.add("hidden");
+        document.getElementById("victory-section").classList.remove("hidden");
+        document.getElementById("victory-msg").innerText = `${name} es todo un as analizando los enlaces`;
+    }
+
+    initGame();
+</script>
+
+</body>
+</html>
