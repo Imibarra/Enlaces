@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Beta-Urreko · Enlaces gramaticales</title>
+  <title>Beta-Urreko · Enlaces gramaticales I</title>
   <style>
     :root {
       /* Beta-Urreko · Lengua Castellana */
@@ -73,17 +73,25 @@
     .brand {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       color: var(--subject);
-      letter-spacing: 0.02em;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 0.9rem;
     }
 
-    .brand-dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 999px;
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
       background: var(--subject);
-      box-shadow: 0 0 0 5px rgba(159, 18, 57, 0.12);
+      color: #FFFFFF;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 10px 22px rgba(159, 18, 57, 0.24);
+      font-size: 1rem;
+      line-height: 1;
     }
 
     .subject-pill {
@@ -515,13 +523,6 @@
       margin: 8px 0;
     }
 
-    .footer-note {
-      margin-top: 16px;
-      color: var(--muted);
-      text-align: center;
-      font-size: 0.88rem;
-    }
-
     @media (max-width: 700px) {
       body {
         padding: 12px;
@@ -574,7 +575,7 @@
 <body>
   <main class="app-shell">
     <div class="brand-bar" aria-label="Identidad de la actividad">
-      <div class="brand"><span class="brand-dot"></span> Beta-Urreko</div>
+      <div class="brand"><span class="brand-mark" aria-hidden="true">BU</span> Beta-Urreko</div>
       <div class="subject-pill">Lengua Castellana · Nivel I</div>
     </div>
 
@@ -696,7 +697,6 @@
       </div>
     </section>
 
-    <div class="footer-note">Actividad de Lengua Castellana · Diseño visual Beta-Urreko</div>
   </main>
 
   <script>
